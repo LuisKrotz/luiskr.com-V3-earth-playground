@@ -10,7 +10,9 @@ import '@cms/projects/CmsProjectsList.js'
 import '@cms/playground-editor/CmsPlaygroundEditor.js'
 import '@cms/footer/CmsFooterEditor.js'
 import '@cms/deploy-info/CmsDeployInfo.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
+import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
 globalThis.alert = jest.fn()
 
@@ -63,6 +65,46 @@ describe('space boot tails', () => {
 
     boot.initSpaceEarth(c3)
     expect(c3._earthBg).toBeNull()
+  }, 15000)
+
+  test('initSpaceEarth init-rejection runs the catch arm and fallback marks', async () => {
+    const boot = await import('@earth/space/boot.js')
+    const canvas = document.createElement(HTML_TAGS.CANVAS)
+
+    document.body.appendChild(canvas)
+
+    // _applyPersistedSettings throws inside the onReady callback — init()
+    // propagates it as a rejection so the catch arm lands the fallback
+    // flags and still dismisses the loader.
+    const c = {
+      _earthBg: null,
+      _earthReady: false,
+      _earthFailed: false,
+      _isInitializingEarth: false,
+      _canvasEl: canvas,
+      _getCanvasEl: () => canvas,
+      $: () => null,
+      _updateLoader: jest.fn(),
+      _applyPersistedSettings: () => {
+        throw new Error(TEST_TEXT.UNKNOWN)
+      },
+      _syncPanel: jest.fn(),
+      _updateDom: jest.fn(),
+      _dismissLoader: jest.fn(),
+    }
+
+    boot.initSpaceEarth(c)
+
+    await flush(1200)
+
+    expect(c._earthFailed).toBe(true)
+    expect(c._updateDom).toHaveBeenCalled()
+    expect(c._dismissLoader).toHaveBeenCalled()
+    expect(canvas.classList.contains(STATE_CLASSES.IS_FALLBACK)).toBe(true)
+
+    c._earthBg?.destroy?.()
+
+    canvas.remove()
   }, 15000)
 
   test('updateSpaceLoader/dismissSpaceLoader/applyPersistedSettings arms', async () => {

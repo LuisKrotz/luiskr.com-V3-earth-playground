@@ -71,6 +71,7 @@ export class SpacePlayground extends BaseComponent {
   _canvasEl: HTMLCanvasElement | null = null // persistent render canvas (kept across re-renders)
   _isInitializingEarth = false // re-entrancy guard while init() is in flight
   _earthReady = false // first usable frame delivered — loader dismisses
+  _earthFailed = false // engine boot failed — CSS fallback surface renders instead
   _keyboardExpandedGroups = new WeakSet<Element>() // collapsed groups opened only for focus traversal
 
   constructor() {
@@ -158,6 +159,10 @@ export class SpacePlayground extends BaseComponent {
     this._canvasEl = null
 
     this._isInitializingEarth = false
+
+    this._earthReady = false
+
+    this._earthFailed = false
 
     if (this._posRafId) cancelAnimationFrame(this._posRafId)
 

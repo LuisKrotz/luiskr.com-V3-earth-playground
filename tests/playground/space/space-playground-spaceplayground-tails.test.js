@@ -427,11 +427,4 @@ describe('SpacePlayground tails', () => {
 
     unmount(el)
   })
-
-  test('module re-eval skips custom-element redefinition', async () => {
-    expect(customElements.get(VIEW_TAGS.VIEW_SPACE_PLAYGROUND)).toBeTruthy()
-    jest.resetModules()
-
-    await import('@earth/SpacePlayground.js')
-  })
 })

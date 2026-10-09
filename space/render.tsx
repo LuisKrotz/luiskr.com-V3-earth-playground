@@ -17,7 +17,6 @@ import { SP_MUSIC } from '@core/tokens/playground/music.js'
 import { h, Fragment } from '@core/jsx.js'
 import { appText } from '@core/locale/ui-text.js'
 import { SLIDER_GROUPS, SP_DEFAULTS } from './controls.js'
-import { renderSpAction, renderSpControl } from './panel-render.js'
 import type { SpacePlayground } from '../SpacePlayground.js'
 
 /** Builds a stable relationship id for a group header and its content. */
@@ -42,6 +41,12 @@ export function renderSpacePlayground(host: SpacePlayground) {
 
   return (
     <Fragment>
+      {/* Static CSS starfield when the engine can't boot (no WebGL, init
+          failure, forced fallback) — never a dead black canvas. */}
+      {host._earthFailed && (
+        <div className={SP_CLASSES.SP_FALLBACK} aria-hidden={ATTR_VALUES.TRUE} />
+      )}
+
       {/* Sci-Fi System Boot Loader — only shown during initial load */}
       {!earthReady && (
         <div className={SP_CLASSES.SP_LOADER}>
@@ -114,11 +119,9 @@ export function renderSpacePlayground(host: SpacePlayground) {
                   id={groupContentId(index)}
                   inert={group.collapsed}
                 >
-                  {group.controls.map((ctrl) =>
-                    renderSpControl(ctrl, t, host._savedSettings[ctrl.param])
-                  )}
+                  {group.controls.map((ctrl) => host._renderControl(ctrl, t))}
 
-                  {group.actions?.map((act) => renderSpAction(act, t))}
+                  {group.actions?.map((act) => host._renderAction(act, t))}
                 </div>
               </div>
             ))}

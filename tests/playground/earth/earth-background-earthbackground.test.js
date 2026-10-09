@@ -6,7 +6,7 @@ import { describe, test, expect, jest } from '@jest/globals'
 import { clearDevLog, getDevLog } from '@core/devlog.js'
 import { LOG_LEVELS } from '@core/tokens/data/log.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
-import { MOUSE_EVENTS } from '@core/tokens/events/dom.js'
+import { MOUSE_EVENTS, WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 
@@ -55,6 +55,10 @@ describe('EarthBackground', () => {
     expect(getDevLog().filter((e) => e.level === LOG_LEVELS.ERROR)).toEqual([])
     expect(ready).toHaveBeenCalled()
     expect(progress.length).toBeGreaterThan(3)
+
+    // The bootstrap-registered resize listener must run its arrow body —
+    // fires handleEarthResize against the live renderer/camera pair.
+    window.dispatchEvent(new Event(WINDOW_EVENTS.RESIZE))
 
     bg.destroy()
   })

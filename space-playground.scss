@@ -36,6 +36,30 @@ $_B_SPP: '#{$_B_SP}-panel';
   height: 100%;
   display: block;
   z-index: 0;
+
+  // Dead GL context after a failed boot — hidden so the CSS starfield
+  // shows through instead of an opaque black framebuffer.
+  &.is-fallback {
+    visibility: hidden;
+  }
+}
+
+// Static deep-space fallback — mounted when the engine can't boot
+// (WebGL disallowed/unavailable, init failure). Keeps the route legible
+// instead of leaving a black void.
+.#{$_B_SP}-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 62%, rgba($color-blue, 0.28) 0%, transparent 70%),
+    radial-gradient(
+      circle at center,
+      rgba($color-blue, 0.3) 0%,
+      rgba($color-black, 0.9) 60%,
+      var(--bg-dark) 100%
+    );
 }
 
 // ── Sci-Fi System Boot Loader overlay ─────────────────────────────────────────

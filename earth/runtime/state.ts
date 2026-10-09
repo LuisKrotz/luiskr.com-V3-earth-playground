@@ -119,6 +119,9 @@ export interface EarthState {
   disposed: boolean
   /** Mirrors the store's reduced-motion flag; freezes the loop. */
   reduced: boolean
+  /** Set when bootstrap threw or bailed before the scene assembled — the
+   *  host swaps in the CSS fallback surface instead of a dead canvas. */
+  failed: boolean
   /** UI theme flag — stored for the sun-rotation feature (not yet wired). */
   isDarkTheme: boolean
   onReady: (() => void) | undefined | null
@@ -173,6 +176,7 @@ export const createEarthState = (
   animId: null,
   disposed: false,
   reduced: false,
+  failed: false,
   isDarkTheme: false,
   onReady: onReady ?? null,
   onProgress: onProgress ?? null,

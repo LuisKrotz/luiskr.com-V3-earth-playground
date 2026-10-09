@@ -124,5 +124,6 @@ export const bootstrapEarth = async (s: EarthState): Promise<void> => {
 
   s.onProgress?.('Ready', 100)
 
-  s.onReady?.()
+  // onReady is fired by EarthBackground.init() — single fire point so the
+  // early-return bailouts above can't leave the loader overlay stuck.
 }

@@ -8,6 +8,7 @@
 
 import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
 import { SP_CLASSES } from '@core/tokens/classes/playground.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { CAROUSEL_CSS_PROPS } from '@core/tokens/css/carousel.js'
 import { ANIMATION_DURATIONS } from '@core/tokens/motion/animation.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
@@ -58,12 +59,20 @@ export function initSpaceEarth(c: SpacePlayground): void {
 
       c._earthReady = true
 
+      // A failed boot still reaches here — swap the dead canvas for the
+      // CSS fallback surface instead of leaving a black void.
+      c._earthFailed = c._earthBg?.failed === true
+
+      if (c._earthFailed) c._canvasEl?.classList.add(STATE_CLASSES.IS_FALLBACK)
+
       c._earthBg?.setReducedMotion(store.getters.getReducedMotion())
 
       // Apply persisted settings
       c._applyPersistedSettings()
 
       c._syncPanel()
+
+      if (c._earthFailed) c._updateDom()
 
       c._dismissLoader()
     },
@@ -73,6 +82,11 @@ export function initSpaceEarth(c: SpacePlayground): void {
     devError('[SpacePlayground] Earth init error:', err)
     c._isInitializingEarth = false
     c._earthReady = true
+    c._earthFailed = true
+
+    c._canvasEl?.classList.add(STATE_CLASSES.IS_FALLBACK)
+
+    c._updateDom()
 
     c._dismissLoader()
   })

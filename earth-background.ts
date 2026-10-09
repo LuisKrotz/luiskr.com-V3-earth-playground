@@ -83,8 +83,25 @@ export class EarthBackground {
       await bootstrapEarth(this.#s)
     } catch (e) {
       devError('[EarthBG] Bootstrap failed:', e)
-      this.#s.onReady?.()
+      this.#s.failed = true
     }
+
+    if (this.#s.disposed) return
+
+    // Silent early-returns (webglAllowed gate, renderer probe, texture
+    // bailouts) leave the scene half-built without throwing — a missing
+    // earth group means boot never completed, so flag it for the fallback.
+    if (!this.#s.earth) this.#s.failed = true
+
+    this.#s.onReady?.()
+  }
+
+  /**
+   * True when bootstrap bailed or threw before the scene assembled — hosts
+   * should swap in the CSS fallback surface instead of a dead canvas.
+   */
+  get failed(): boolean {
+    return this.#s.failed
   }
 
   /**

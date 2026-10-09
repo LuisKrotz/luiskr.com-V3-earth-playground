@@ -100,6 +100,20 @@ describe('SpacePlayground', () => {
     el.remove()
   })
 
+  test('failed engine boot mounts the CSS fallback surface', async () => {
+    const el = mount()
+
+    await waitBoot(el)
+
+    el._earthFailed = true
+    el._updateDom()
+
+    expect(el.shadowRoot.querySelector(`.${SP_CLASSES.SP_FALLBACK}`)).toBeTruthy()
+
+    el.onDestroy()
+    el.remove()
+  })
+
   test('collapsed groups expose button semantics and follow keyboard focus', async () => {
     const el = mount()
 
