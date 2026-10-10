@@ -1,0 +1,32 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  space-playground/_music.scss — the native audio player bar aligned with the nav.
+//  Imported by space-playground.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Native audio player bar aligned with nav ─────────────────────────────────
+
+// Music toggle button.
+.#{$_B_SP}-music {
+  @extend %MAXAREA;
+
+  position: absolute;
+  bottom: to-rem($space-xl);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+
+  audio {
+    pointer-events: auto;
+    height: to-rem($space-2xl);
+    border-radius: var(--radius-round);
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+
+    &:hover,
+    &:focus {
+      opacity: 1;
+    }
+  }
+}
