@@ -12,6 +12,8 @@ import { TRANSLATION_KEYS } from '@core/tokens/routes/translation-keys.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import store from '@core/store.js'
 import { fetchFirebaseDb } from '@core/utils/data/db.js'
+import { setMetaDescription } from '@core/router/navigate.js'
+import { toMetaDescription } from '@core/utils/string.js'
 import {
   PARAM_HANDLERS,
   SLIDER_GROUPS,
@@ -60,6 +62,10 @@ export function applySpaceTranslations(
   val: Record<string, unknown> | null | undefined
 ): void {
   const { defaults, ...labels } = val || {}
+
+  // The page node's `description` field is the route's SERP snippet —
+  // push the localized value now that the labels node resolved.
+  if (labels.description) setMetaDescription(toMetaDescription(String(labels.description)))
 
   c.translations = labels
 

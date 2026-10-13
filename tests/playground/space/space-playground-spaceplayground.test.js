@@ -506,6 +506,12 @@ describe('SpacePlayground', () => {
       await waitBoot(el)
 
       el._applyTranslations({ title: 'X', defaults: { [SP_CAMERA_PARAMS.FOV]: 40 } })
+
+      document.head.insertAdjacentHTML('beforeend', '<meta name="description" content="old">')
+      el._applyTranslations({ title: 'X', description: 'Earth snippet' })
+      expect(document.head.querySelector('meta[name="description"]').content).toBe('Earth snippet')
+      document.head.querySelector('meta[name="description"]').remove()
+
       el._applyDbDefaults({ [SP_CAMERA_PARAMS.FOV]: 40 })
       el._applyDbDefaults(null)
 
