@@ -67,6 +67,8 @@ export class SpacePlayground extends BaseComponent {
   _collapsedMap: Record<string, boolean> = {} // per-group fold state (reserved for persisted collapse)
   _savedSettings: SpSavedSettings = {} // merged localStorage param map — wins over defaults
   _posRafId: number | null = null // RAF id for the position/target readout loop
+  _posEls: { pos: Element | null; tgt: Element | null } | null = null // cached readout nodes — re-queried when detached
+  _posLast: [number, number, number, number, number, number] | null = null // last-written px values — skips identical textContent writes
   _checkboxes: Record<string, CheckboxWebGL> = {} // param → CheckboxWebGL widget map
   _canvasEl: HTMLCanvasElement | null = null // persistent render canvas (kept across re-renders)
   _isInitializingEarth = false // re-entrancy guard while init() is in flight

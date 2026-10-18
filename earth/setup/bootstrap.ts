@@ -112,7 +112,7 @@ export const bootstrapEarth = async (s: EarthState): Promise<void> => {
 
   s.onResize = () => handleEarthResize(s)
 
-  window.addEventListener(WINDOW_EVENTS.RESIZE, s.onResize)
+  window.addEventListener(WINDOW_EVENTS.RESIZE, s.onResize, { passive: true })
 
   s.onProgress?.('Compiling shaders…', 90)
 

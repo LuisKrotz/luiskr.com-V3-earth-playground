@@ -263,6 +263,11 @@ describe('SpacePlayground tails', () => {
     el._earthBg = { getCameraState: () => null }
     el._handleInput(input)
 
+    // No data-param attribute at all — `!param` early-return.
+    const bare = document.createElement(HTML_TAGS.INPUT)
+
+    el._handleInput(bare)
+
     el._earthBg = null
 
     unmount(el)
@@ -279,6 +284,44 @@ describe('SpacePlayground tails', () => {
 
     el._earthBg = null
     await flush(60)
+
+    unmount(el)
+  })
+
+  test('position loop skips unchanged frames and refreshes detached readouts', async () => {
+    const el = mount()
+    await waitBoot(el)
+
+    const stateA = { position: { x: 1, y: 2, z: 3 }, target: { x: 0, y: 0, z: 0 } }
+    const stateB = { position: { x: 4, y: 5, z: 6 }, target: { x: 0, y: 0, z: 0 } }
+
+    let current = stateA
+
+    el._earthBg = { getCameraState: () => current, destroy: jest.fn() }
+
+    // First tick populates _posLast (else arm) + _posEls (null → query).
+    el._startPositionLoop()
+
+    expect(el._posLast).not.toBeNull()
+
+    // Same state next tick → the `last && all-equal` early return.
+    el._startPositionLoop()
+
+    // Moved camera → the `if (c._posLast)` in-place scalar update arm.
+    current = stateB
+    el._startPositionLoop()
+
+    expect(el._posLast[0]).toBe(4)
+
+    // A detached cached node → `(els.pos && !els.pos.isConnected)` →
+    // the refresh arm re-queries (and finds nothing now). The camera
+    // must move again first — the unchanged-state early return guards
+    // the refresh too.
+    el._posEls?.pos?.remove()
+    current = { position: { x: 7, y: 8, z: 9 }, target: { x: 0, y: 0, z: 0 } }
+    el._startPositionLoop()
+
+    expect(el._posEls?.pos).toBeNull()
 
     unmount(el)
   })

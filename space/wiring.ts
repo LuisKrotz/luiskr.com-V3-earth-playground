@@ -165,15 +165,50 @@ export function startSpacePositionLoop(c: SpacePlayground): void {
 
     if (!state) return
 
-    const posEl = c.$(`.${SP_CLASSES.SP_POS}`)
+    // Skip the write entirely when the camera hasn't moved — two shadow
+    // queries + two interpolated strings per idle frame is pure GC churn.
+    const p = state.position
+    const t = state.target
+    const last = c._posLast
 
-    const tgtEl = c.$(`.${SP_CLASSES.SP_TGT}`)
+    if (
+      last &&
+      last[0] === p.x &&
+      last[1] === p.y &&
+      last[2] === p.z &&
+      last[3] === t.x &&
+      last[4] === t.y &&
+      last[5] === t.z
+    ) {
+      return
+    }
 
-    if (posEl)
-      posEl.textContent = `X: ${state.position.x}   Y: ${state.position.y}   Z: ${state.position.z}`
+    if (c._posLast) {
+      c._posLast[0] = p.x
+      c._posLast[1] = p.y
+      c._posLast[2] = p.z
+      c._posLast[3] = t.x
+      c._posLast[4] = t.y
+      c._posLast[5] = t.z
+    } else {
+      c._posLast = [p.x, p.y, p.z, t.x, t.y, t.z]
+    }
 
-    if (tgtEl)
-      tgtEl.textContent = `X: ${state.target.x}   Y: ${state.target.y}   Z: ${state.target.z}`
+    // Cached readout nodes — refreshed only when a re-render detaches them.
+    let els = c._posEls
+
+    if (!els || (els.pos && !els.pos.isConnected) || (els.tgt && !els.tgt.isConnected)) {
+      els = c._posEls = {
+        pos: c.$(`.${SP_CLASSES.SP_POS}`),
+        tgt: c.$(`.${SP_CLASSES.SP_TGT}`),
+      }
+    }
+
+    if (els.pos)
+      els.pos.textContent = `X: ${state.position.x}   Y: ${state.position.y}   Z: ${state.position.z}`
+
+    if (els.tgt)
+      els.tgt.textContent = `X: ${state.target.x}   Y: ${state.target.y}   Z: ${state.target.z}`
   }
 
   update()
