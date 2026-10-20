@@ -37,6 +37,7 @@ export const renderSpControl = (
             type={SP_INPUT_TYPES.CHECKBOX}
             className={SP_CLASSES.SP_CHECK_INPUT}
             data-param={ctrl.param}
+            name={ctrl.param}
             checked={isChecked}
           />
           <span className={SP_CLASSES.SP_CHECK_BOX}>
@@ -71,6 +72,7 @@ export const renderSpControl = (
           type={SP_INPUT_TYPES.RANGE}
           className={SP_CLASSES.SP_RANGE}
           data-param={ctrl.param}
+          name={ctrl.param}
           min={String(ctrl.min)}
           max={String(ctrl.max)}
           step={String(ctrl.step)}
