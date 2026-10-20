@@ -85,6 +85,8 @@ export function buildSurfaceMaterial({
     normalize,
     cross,
     positionWorld,
+    cameraPosition,
+    length,
     dot,
     max,
     vec3,
@@ -141,6 +143,26 @@ export function buildSurfaceMaterial({
   const wRough = uniform(DEFAULT_SP_GUI.OCEAN.ROUGHNESS)
   const wMetal = uniform(DEFAULT_SP_GUI.OCEAN.METALNESS)
 
+  /* Close-zoom detail ramp */
+  // The 2K equirect maps resolve ~20 km/texel — at the ~100 km zoom floor
+  // (camera ~10.16u) the visible swath is tens of texels wide, so unscaled
+  // terrain/city terms flatten out. zoomDetail is a reversed smoothstep on
+  // camera distance from the planet center (earth sits at the origin):
+  // 0 at DETAIL_START_DIST (12u ≈ 1274 km, the old zoom floor) → 1 at
+  // DETAIL_FULL_DIST (10.6u ≈ 382 km), saturating through the last stretch.
+  // Computed per-fragment in the node graph — zero per-frame JS cost.
+  const camDist = length(cameraPosition)
+  const zoomDetail = smoothstep(
+    DEFAULT_SP_GUI.EARTH.DETAIL_START_DIST,
+    DEFAULT_SP_GUI.EARTH.DETAIL_FULL_DIST,
+    camDist
+  )
+  const bumpBoost = zoomDetail.mul(DEFAULT_SP_GUI.EARTH.DETAIL_BUMP_BOOST - 1).add(1)
+  const shadowBoost = zoomDetail.mul(DEFAULT_SP_GUI.EARTH.DETAIL_SHADOW_BOOST - 1).add(1)
+  const shadowOffsetBoost = zoomDetail
+    .mul(DEFAULT_SP_GUI.EARTH.DETAIL_SHADOW_OFFSET_BOOST - 1)
+    .add(1)
+
   /* Normals + self shadow */
   // Tangent frame for the normal map, built in object space: surf is the
   // geometric normal, vTan = worldUp × surf gives east-west tangent,
@@ -162,7 +184,7 @@ export function buildSurfaceMaterial({
   // fragment does, the fragment sits in a bump's shadow → occ > 0.
   const sProj = sunLocal.sub(surf.mul(dot(sunLocal, surf)))
   const sT = normalize(sProj.add(vec3(1e-6)))
-  const offP = normalize(positionLocal.add(sT.mul(tSSO)))
+  const offP = normalize(positionLocal.add(sT.mul(tSSO.mul(shadowOffsetBoost))))
   const offUv = equirectUV(offP)
   const offN = texture(normalTex, offUv).xyz.mul(2).sub(1)
   const pNOff = normalize(vTan.mul(offN.x).add(vBit.mul(offN.y)).add(surf.mul(offN.z)))
@@ -174,7 +196,7 @@ export function buildSurfaceMaterial({
   // skylight bouncing into shadowed terrain.
   const lMask = spec.oneMinus()
   const dayM = smoothstep(0, 0.2, dot(surf, sunLocal))
-  const ssF = smoothstep(0, 0.3, occ).mul(lMask).mul(tSSI).mul(dayM)
+  const ssF = smoothstep(0, 0.3, occ).mul(lMask).mul(tSSI.mul(shadowBoost)).mul(dayM)
   const tSC = mix(vec3(1), vec3(0.1, 0.15, 0.2), ssF)
 
   /* Moon eclipse */
@@ -206,11 +228,17 @@ export function buildSurfaceMaterial({
   const bumpScale = uniform(DEFAULT_SP_GUI.EARTH.BUMP_SCALE)
   const bumpFade = smoothstep(-0.15, 0.15, sunDot)
 
-  mat.normalNode = normalMap(texture(normalTex), bumpScale.mul(bumpFade))
+  mat.normalNode = normalMap(texture(normalTex), bumpScale.mul(bumpFade).mul(bumpBoost))
 
   // Emissive = city lights on the night side + a dim ambient bounce
   // (albedo × dark-side-brightness × 0.5) so night terrain isn't void.
-  const nightLights = texture(nightTex).mul(nightFade).mul(cityLts)
+  // Close-zoom boost: squaring the night map contrast-stretches it (dim
+  // haze drops, bright city clusters keep their value), and a gain
+  // multiplier keeps the clusters readable against the ambient bounce.
+  const nightGain = zoomDetail.mul(DEFAULT_SP_GUI.EARTH.DETAIL_CITY_BOOST - 1).add(1)
+  const nightSample = texture(nightTex)
+  const nightCurve = mix(nightSample, nightSample.mul(nightSample), zoomDetail)
+  const nightLights = nightCurve.mul(nightFade).mul(cityLts).mul(nightGain)
   const darkAmb = texture(colorTex).mul(nightFade).mul(darkBr).mul(0.5)
 
   mat.emissiveNode = nightLights.add(darkAmb)

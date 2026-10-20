@@ -51,10 +51,11 @@ export function setupSceneCamera(
   s.controls.enableZoom = true
   s.controls.mouseButtons.RIGHT = THREE.MOUSE.PAN
 
-  // Zoom clamp: 1.2× radius keeps the camera outside the atmosphere shell
-  // (10.4); 10× radius pulls out far enough to frame the moon orbit.
-  s.controls.minDistance = EARTH_RADIUS * 1.2
-  s.controls.maxDistance = EARTH_RADIUS * 10
+  // Zoom clamp: min ≈ 1.016× radius ≈ 100 km altitude — inside the
+  // atmosphere shell (10.2u), whose BackSide far wall stays visible as a
+  // limb ring at the horizon; max 10× radius frames the moon orbit.
+  s.controls.minDistance = EARTH_RADIUS * DEFAULT_SP_GUI.CAMERA.MIN_RADIUS_FACTOR
+  s.controls.maxDistance = EARTH_RADIUS * DEFAULT_SP_GUI.CAMERA.MAX_RADIUS_FACTOR
   s.controls.autoRotate = DEFAULT_SP_GUI.CAMERA.AUTO_ROTATE
   s.controls.autoRotateSpeed = DEFAULT_SP_GUI.CAMERA.AUTO_ROTATE_SPEED
   s.controls.target.set(

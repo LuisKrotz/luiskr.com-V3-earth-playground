@@ -17,6 +17,8 @@ import store from '@core/store.js'
 import { EarthBackground } from './earth-background.js'
 import { CheckboxWebGL } from './space/checkbox-webgl.js'
 import { SP_CLASSES } from '@core/tokens/classes/playground.js'
+import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
+import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
 import {
   loadSpaceSettings,
   type SpAction,
@@ -106,6 +108,10 @@ export class SpacePlayground extends BaseComponent {
     if (this.shadowRoot && !this.shadowRoot.contains(canvas)) {
       this.shadowRoot?.insertBefore(canvas, this._contentNode)
     }
+
+    // The Earth scene canvas is the animated surface — bound once it
+    // lives in the shadow root.
+    applyAnimationDesc(canvas, ANIMATION_IDS.SCENE_3D)
 
     // Load persisted settings
     const saved = loadSpaceSettings()
