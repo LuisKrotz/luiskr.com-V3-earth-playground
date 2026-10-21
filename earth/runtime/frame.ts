@@ -118,4 +118,22 @@ export const tickEarth = (s: EarthState): void => {
       s.renderer.render(s.scene, s.camera)
     }
   }
+
+  // Adaptive quality — the ONNX frametime model predicts the next
+  // frame's cost from a rolling window and steps quality inside its
+  // budget; only a changed value re-applies the pixel ratio. record()
+  // never blocks the tick — inference lands asynchronously.
+  const frameNow = performance.now()
+
+  if (s.render.lastFrameMs) s.render.predictor.record(frameNow - s.render.lastFrameMs)
+
+  s.render.lastFrameMs = frameNow
+
+  const quality = s.render.predictor.quality * s.render.resolutionScale
+
+  if (quality !== s.render.appliedQuality) {
+    s.render.appliedQuality = quality
+
+    s.renderer?.setPixelRatio(Math.min(window.devicePixelRatio, 2) * quality)
+  }
 }

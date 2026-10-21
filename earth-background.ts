@@ -173,6 +173,8 @@ export class EarthBackground {
 
     s.disposed = true
 
+    s.render.predictor.destroy() // latch inference — post-destroy record() can't re-arm ORT imports
+
     if (s.animId) {
       cancelAnimationFrame(s.animId)
       s.animId = null

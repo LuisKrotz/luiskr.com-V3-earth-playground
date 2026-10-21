@@ -11,6 +11,7 @@ import type { WebGPURenderer, RenderPipeline, UniformNode } from 'three/webgpu'
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import type BloomNode from 'three/examples/jsm/tsl/display/BloomNode.js'
 import { DEFAULT_SP_GUI } from '@core/tokens/playground.js'
+import { FrameTimePredictor } from '@core/utils/ml/frame-time.js'
 
 /**
  * Progress callback signature — label + percent so the loader UI can show
@@ -154,7 +155,15 @@ export interface EarthState {
   vig: EarthVigState | null
   film: EarthFilmState | null
   cg: EarthGradeState | null
-  render: { resolutionScale: number }
+  render: {
+    resolutionScale: number
+    /** ML frame-time predictor — adaptive pixel-ratio quality driver. */
+    predictor: FrameTimePredictor
+    /** Timestamp of the previous tick — predictor's frame-delta input. */
+    lastFrameMs: number
+    /** Last quality applied to the renderer — dedupes setPixelRatio. */
+    appliedQuality: number
+  }
   /** Stable resize-listener identity so destroy() can removeEventListener. */
   onResize: (() => void) | null
 }
@@ -208,6 +217,11 @@ export const createEarthState = (
   vig: null,
   film: null,
   cg: null,
-  render: { resolutionScale: DEFAULT_SP_GUI.DEBUG.RESOLUTION_SCALE },
+  render: {
+    resolutionScale: DEFAULT_SP_GUI.DEBUG.RESOLUTION_SCALE,
+    predictor: new FrameTimePredictor(),
+    lastFrameMs: 0,
+    appliedQuality: 1,
+  },
   onResize: null,
 })
