@@ -127,10 +127,12 @@ export class SpacePlayground extends BaseComponent {
     // Start position readout loop
     this._startPositionLoop()
 
-    // Autoplay native audio if allowed
+    // Autoplay native audio if allowed — suppressed under
+    // prefers-reduced-motion (screen-reader proxy) so AT sessions
+    // start silent; the player still renders with controls.
     const audioEl = this.$<HTMLAudioElement>(`.${SP_CLASSES.SP_AUDIO}`)
 
-    if (audioEl) {
+    if (audioEl && !store.getters.getReducedMotion?.()) {
       audioEl.play().catch(() => {})
     }
 

@@ -31,8 +31,11 @@ describe('space panel render tails', () => {
     }
     const check = { label: 'lbl', param: 'p2', type: SP_INPUT_TYPES.CHECKBOX, checked: false }
 
+    const unbound = { label: 'lbl', param: 'p3', type: SP_INPUT_TYPES.RANGE, step: 0.1, def: 0.5 }
+
     expect(renderSpControl(range, {}, undefined)).toBeTruthy()
     expect(renderSpControl(range, { lbl: 'Label!' }, 0.25)).toBeTruthy()
+    expect(renderSpControl(unbound, {}, 0.25)).toBeTruthy()
     expect(renderSpControl(check, {}, undefined)).toBeTruthy()
     expect(renderSpControl(check, {}, true)).toBeTruthy()
     expect(renderSpControl(check, {}, false)).toBeTruthy()
