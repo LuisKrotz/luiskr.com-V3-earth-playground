@@ -101,6 +101,15 @@
     background: var(--bg-secondary);
     overflow: hidden;
 
+    // Disclosure heading — every settings group is a real h3 for AT
+    // heading-jump; the wrapped button owns all the chrome.
+    &-heading {
+      margin: 0;
+      padding: 0;
+      font: inherit;
+      display: block;
+    }
+
     &-header {
       @extend %RESETBTN;
 
@@ -311,6 +320,14 @@
       margin: 0;
       cursor: pointer;
       z-index: 2;
+
+      // Keyboard focus — the input itself is invisible, so the ring
+      // lands on the painted WebGL box sibling.
+      &:focus-visible + .#{$_B_SPP}-check-box {
+        @include focus-ring;
+
+        border-color: var(--color-accent-contrast);
+      }
     }
 
     &-box {

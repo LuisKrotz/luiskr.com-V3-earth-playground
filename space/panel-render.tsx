@@ -6,18 +6,43 @@
  * data-param/data-check attrs the component's delegated handlers read.
  */
 
+import { A11Y_CLASSES } from '@core/tokens/classes/a11y.js'
 import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
 import { FORM_ATTRS } from '@core/tokens/attrs/form.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { SP_CLASSES } from '@core/tokens/classes/playground.js'
 import { CAROUSEL_CSS_PROPS } from '@core/tokens/css/carousel.js'
-import { h } from '@core/jsx.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import { h, Fragment } from '@core/jsx.js'
 import { SP_INPUT_TYPES, type SpAction, type SpControl, type SpParamValue } from './controls.js'
+
+/**
+ * Builds the aria-describedby id + technical description for one control.
+ * The description names the engine param the row drives (and the slider
+ * bounds for ranges) so AT announces what the control actually changes.
+ * @param ctrl The control schema row.
+ * @param labelText The resolved localized label.
+ * @returns `{ id, text }` — id for aria-describedby, text for the hidden span.
+ */
+const controlDesc = (ctrl: SpControl, labelText: string): { id: string; text: string } => {
+  const range =
+    ctrl.type === SP_INPUT_TYPES.RANGE
+      ? ` ${CHAR_STRINGS.DOT_SEP} ${ctrl.min ?? 0}${CHAR_STRINGS.DASH}${ctrl.max ?? 1}`
+      : CHAR_STRINGS.EMPTY
+
+  return {
+    id: `${SP_CLASSES.SP_ROW}-desc-${ctrl.param}`,
+    text: `${labelText} ${CHAR_STRINGS.EM_DASH} ${ctrl.param}${range}`,
+  }
+}
 
 /**
  * One control row. Checkboxes render a WebGL check canvas + SVG check icon;
  * ranges render a slider with the range-fill CSS var + a value readout.
  * `savedVal` (persisted user value) wins over the control's shipped default.
+ * Each row is preceded by a sr-only h4 — every control is a heading so AT
+ * heading-jump can list and reach every option; the input carries an
+ * aria-describedby technical line (param id + bounds).
  */
 export const renderSpControl = (
   ctrl: SpControl,
@@ -26,32 +51,41 @@ export const renderSpControl = (
 ) => {
   const labelText = (t[ctrl.label] as string | undefined) || ctrl.label
 
+  const desc = controlDesc(ctrl, labelText)
+
   if (ctrl.type === SP_INPUT_TYPES.CHECKBOX) {
     const isChecked = savedVal !== undefined ? Boolean(savedVal) : ctrl.checked
 
     return (
-      <label className={`${SP_CLASSES.SP_ROW} ${SP_CLASSES.SP_ROW_CHECK}`}>
-        <span className={SP_CLASSES.SP_ROW_LABEL}>{labelText}</span>
-        <span className={SP_CLASSES.SP_CHECK_WRAPPER}>
-          <input
-            type={SP_INPUT_TYPES.CHECKBOX}
-            className={SP_CLASSES.SP_CHECK_INPUT}
-            data-param={ctrl.param}
-            name={ctrl.param}
-            checked={isChecked}
-          />
-          <span className={SP_CLASSES.SP_CHECK_BOX}>
-            <canvas className={SP_CLASSES.SP_CHECK_CANVAS} data-check={ctrl.param} />
-            <svg
-              className={SP_CLASSES.SP_CHECK_ICON}
-              viewBox="0 0 16 16"
-              aria-hidden={ATTR_VALUES.TRUE}
-            >
-              <polyline points="3 8 6.5 11.5 13 4" />
-            </svg>
+      <Fragment>
+        <h4 className={A11Y_CLASSES.SR_ONLY}>{labelText}</h4>
+        <label className={`${SP_CLASSES.SP_ROW} ${SP_CLASSES.SP_ROW_CHECK}`}>
+          <span className={SP_CLASSES.SP_ROW_LABEL}>{labelText}</span>
+          <span className={SP_CLASSES.SP_CHECK_WRAPPER}>
+            <input
+              type={SP_INPUT_TYPES.CHECKBOX}
+              className={SP_CLASSES.SP_CHECK_INPUT}
+              data-param={ctrl.param}
+              name={ctrl.param}
+              checked={isChecked}
+              aria-describedby={desc.id}
+            />
+            <span className={SP_CLASSES.SP_CHECK_BOX}>
+              <canvas className={SP_CLASSES.SP_CHECK_CANVAS} data-check={ctrl.param} />
+              <svg
+                className={SP_CLASSES.SP_CHECK_ICON}
+                viewBox="0 0 16 16"
+                aria-hidden={ATTR_VALUES.TRUE}
+              >
+                <polyline points="3 8 6.5 11.5 13 4" />
+              </svg>
+            </span>
           </span>
-        </span>
-      </label>
+          <span className={A11Y_CLASSES.SR_ONLY} id={desc.id}>
+            {desc.text}
+          </span>
+        </label>
+      </Fragment>
     )
   }
 
@@ -65,34 +99,49 @@ export const renderSpControl = (
   )
 
   return (
-    <label className={SP_CLASSES.SP_ROW}>
-      <span className={SP_CLASSES.SP_ROW_LABEL}>{labelText}</span>
-      <div className={SP_CLASSES.SP_ROW_CTRL}>
-        <input
-          type={SP_INPUT_TYPES.RANGE}
-          className={SP_CLASSES.SP_RANGE}
-          data-param={ctrl.param}
-          name={ctrl.param}
-          min={String(ctrl.min)}
-          max={String(ctrl.max)}
-          step={String(ctrl.step)}
-          value={String(val)}
-          style={`${CAROUSEL_CSS_PROPS.RANGE_PCT}:${pct}%;`}
-        />
-        <span className={SP_CLASSES.SP_VAL}>{val}</span>
-      </div>
-    </label>
+    <Fragment>
+      <h4 className={A11Y_CLASSES.SR_ONLY}>{labelText}</h4>
+      <label className={SP_CLASSES.SP_ROW}>
+        <span className={SP_CLASSES.SP_ROW_LABEL}>{labelText}</span>
+        <div className={SP_CLASSES.SP_ROW_CTRL}>
+          <input
+            type={SP_INPUT_TYPES.RANGE}
+            className={SP_CLASSES.SP_RANGE}
+            data-param={ctrl.param}
+            name={ctrl.param}
+            min={String(ctrl.min)}
+            max={String(ctrl.max)}
+            step={String(ctrl.step)}
+            value={String(val)}
+            style={`${CAROUSEL_CSS_PROPS.RANGE_PCT}:${pct}%;`}
+            aria-describedby={desc.id}
+          />
+          <span className={SP_CLASSES.SP_VAL}>{val}</span>
+        </div>
+        <span className={A11Y_CLASSES.SR_ONLY} id={desc.id}>
+          {desc.text}
+        </span>
+      </label>
+    </Fragment>
   )
 }
 
-/** One group-level action button (reset view / screenshot / copy settings). */
+/**
+ * One group-level action button (reset view / screenshot / copy settings).
+ * Preceded by a sr-only h4 — every action is a heading so AT heading-jump
+ * lists it like the controls; the button carries a describedby technical
+ * line naming the dispatched action token.
+ */
 export const renderSpAction = (act: SpAction, t: Record<string, unknown>) => {
   const labelText = (t[act.label] as string | undefined) || act.label
+
+  const descId = `${SP_CLASSES.SP_ACTION_WRAP}-desc-${act.action}`
 
   const props: Record<string, unknown> = {
     className: SP_CLASSES.SP_BTN,
     type: FORM_ATTRS.BUTTON,
     'data-action': act.action,
+    [ARIA_ATTRS.ARIA_DESCRIBEDBY]: descId,
   }
 
   if (act.pressed !== undefined) {
@@ -100,8 +149,14 @@ export const renderSpAction = (act: SpAction, t: Record<string, unknown>) => {
   }
 
   return (
-    <div className={SP_CLASSES.SP_ACTION_WRAP}>
-      <button {...props}>{labelText}</button>
-    </div>
+    <Fragment>
+      <h4 className={A11Y_CLASSES.SR_ONLY}>{labelText}</h4>
+      <div className={SP_CLASSES.SP_ACTION_WRAP}>
+        <button {...props}>{labelText}</button>
+        <span className={A11Y_CLASSES.SR_ONLY} id={descId}>
+          {`${labelText} ${CHAR_STRINGS.EM_DASH} ${act.action}`}
+        </span>
+      </div>
+    </Fragment>
   )
 }

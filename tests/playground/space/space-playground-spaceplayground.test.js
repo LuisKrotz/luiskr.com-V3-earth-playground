@@ -100,6 +100,72 @@ describe('SpacePlayground', () => {
     el.remove()
   })
 
+  test('every group, control and action is a heading; controls carry describedby', async () => {
+    const el = mount()
+
+    await waitBoot(el)
+
+    // Group disclosures: h3 wrapping the expand button — 7 groups +
+    // position/target readouts.
+    const groupHeads = [...el.shadowRoot.querySelectorAll(`h3.${SP_CLASSES.SP_GROUP_HEADING}`)]
+
+    expect(groupHeads.length).toBe(9)
+    expect(
+      groupHeads.every((hEl) => hEl.querySelector(`button.${SP_CLASSES.SP_GROUP_HEADER}`))
+    ).toBe(true)
+
+    // Every input carries a describedby technical line; each control and
+    // action has its own sr-only h4.
+    const inputs = [...el.shadowRoot.querySelectorAll(`input[${DATA_ATTRS.DATA_PARAM}]`)]
+
+    expect(inputs.length).toBeGreaterThan(0)
+    expect(
+      inputs.every((input) => {
+        const desc = el.shadowRoot.querySelector(
+          `#${input.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)}`
+        )
+
+        return desc && desc.textContent.includes(input.getAttribute(DATA_ATTRS.DATA_PARAM))
+      })
+    ).toBe(true)
+
+    const controlHeads = [...el.shadowRoot.querySelectorAll('h4')]
+
+    expect(controlHeads.length).toBeGreaterThanOrEqual(inputs.length)
+
+    // Music player is labelled + described.
+    const audio = el.shadowRoot.querySelector(`.${SP_CLASSES.SP_AUDIO}`)
+
+    expect(audio.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeTruthy()
+    expect(audio.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBeTruthy()
+
+    el.onDestroy()
+    el.remove()
+  })
+
+  test('music starts paused under reduced-motion', async () => {
+    store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, true)
+
+    const playSpy = jest
+      .spyOn(window.HTMLAudioElement.prototype, 'play')
+      .mockImplementation(() => Promise.resolve())
+
+    const el = mount()
+
+    await waitBoot(el)
+
+    const audio = el.shadowRoot.querySelector(`.${SP_CLASSES.SP_AUDIO}`)
+
+    // Attribute gate + the onMounted .play() call are both suppressed.
+    expect(audio.hasAttribute('autoplay')).toBe(false)
+    expect(playSpy).not.toHaveBeenCalled()
+
+    playSpy.mockRestore()
+    el.onDestroy()
+    el.remove()
+    store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
+  })
+
   test('failed engine boot mounts the CSS fallback surface', async () => {
     const el = mount()
 
