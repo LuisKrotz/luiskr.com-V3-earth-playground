@@ -22,6 +22,11 @@ export const takeEarthScreenshot = async (s: EarthState): Promise<void> => {
 
   handleEarthResize(s)
 
+  // Captures bypass the adaptive layer — a screenshot is a deliberate
+  // hi-res export, so pin the ratio at the full 2× even when the
+  // frametime predictor has stepped live quality down.
+  s.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * 2)
+
   try {
     // Render one frame at high res
     if (s.pipeline) {

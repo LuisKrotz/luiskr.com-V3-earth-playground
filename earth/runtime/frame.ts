@@ -32,8 +32,8 @@ export const syncEarthSun = (s: EarthState): void => {
  * Resize step: measures the shadow host first, then the canvas parent,
  * then the window — the canvas lives inside SpacePlayground's shadow
  * root, so clientWidth must come from the host, not the element.
- * Pixel ratio = min(devicePixelRatio, 2) × resolutionScale — the cap at
- * 2 prevents 3x-phone GPU fill-rate blowout.
+ * Pixel ratio = min(devicePixelRatio, 2) × predictor quality ×
+ * resolutionScale — the cap at 2 prevents 3x-phone GPU fill-rate blowout.
  */
 export const handleEarthResize = (s: EarthState): void => {
   if (!s.canvas || !s.renderer || !s.camera) return
@@ -52,7 +52,13 @@ export const handleEarthResize = (s: EarthState): void => {
 
   s.camera.updateProjectionMatrix()
 
-  s.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * s.render.resolutionScale)
+  // Same effective quality as the per-frame path (predictor.quality ×
+  // resolutionScale) — resizing must not bounce the ratio back to full
+  // while the adaptive layer is stepped down; the dedupe only
+  // re-applies on CHANGE.
+  s.renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio, 2) * s.render.predictor.quality * s.render.resolutionScale
+  )
 
   s.renderer.setSize(w, h)
 }
