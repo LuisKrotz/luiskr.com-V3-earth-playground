@@ -64,7 +64,7 @@
   &-title {
     font-size: to-rem($space-xl);
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: calc(600 + var(--fw-lift));
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-primary);
@@ -144,7 +144,7 @@
     &-label {
       font-size: to-rem($space-lg);
       font-family: var(--font-ui);
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-secondary);
@@ -199,7 +199,7 @@
       min-width: to-rem($space-6xl);
       color: var(--text-primary);
       font-size: to-rem(15);
-      font-weight: 600;
+      font-weight: calc(600 + var(--fw-lift));
       letter-spacing: 0.03em;
     }
 
@@ -428,7 +428,7 @@
     font-family: var(--font-mono);
     font-size: to-rem(14);
     color: var(--color-accent-contrast);
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
     min-width: to-rem($space-3xl);
     text-align: right;
     user-select: none;
@@ -438,7 +438,7 @@
   &-readout {
     font-family: var(--font-mono, monospace);
     font-size: to-rem(14);
-    font-weight: 600;
+    font-weight: calc(600 + var(--fw-lift));
     color: var(--color-accent-contrast);
     padding: to-rem($space-xs) to-rem($space-sm);
     white-space: pre;
@@ -467,7 +467,7 @@
     color: var(--text-primary);
     font-size: to-rem(15);
     font-family: var(--font-ui);
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
     letter-spacing: 0.14em;
     text-transform: uppercase;
     cursor: pointer;

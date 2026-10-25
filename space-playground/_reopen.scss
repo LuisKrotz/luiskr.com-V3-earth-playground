@@ -23,7 +23,7 @@
     // --text-primary (dark in light mode → invisible on the canvas).
     color: var(--color-white-raw);
     background: transparent;
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
     white-space: nowrap;
     -webkit-backdrop-filter: blur(to-rem($space-2xs));
     backdrop-filter: blur(to-rem($space-2xs));
