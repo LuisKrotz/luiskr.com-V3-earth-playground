@@ -7,6 +7,7 @@
  */
 
 import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
+import { COMMON_ATTRS } from '@core/tokens/attrs/common.js'
 import { SP_CLASSES } from '@core/tokens/classes/playground.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { CAROUSEL_CSS_PROPS } from '@core/tokens/css/carousel.js'
@@ -103,6 +104,12 @@ export function dismissSpaceLoader(c: SpacePlayground): void {
 
   if (loader) {
     loader.style.opacity = CHAR_STRINGS.ZERO
+
+    // The fade leaves the element in the accessibility tree until the
+    // removal timeout lands — mid-fade its text is still exposed (and
+    // still scanned by contrast tooling). visibility:hidden retires it
+    // immediately without clipping the visual fade.
+    loader.style.visibility = COMMON_ATTRS.HIDDEN
 
     setTimeout(() => loader.remove(), ANIMATION_DURATIONS.LOADER_FADE_MS)
   }
