@@ -9,6 +9,7 @@
 
 import { FORM_ATTRS } from '@core/tokens/attrs/form.js'
 import { SP_ACTIONS } from '@core/tokens/playground/actions.js'
+import { SP_CONTROL_GROUPS } from '@core/tokens/playground/control-groups.js'
 import { TRANSLATION_KEYS } from '@core/tokens/routes/translation-keys.js'
 import { FALLBACK_PAGES } from '@core/locale/fallback.js'
 import type { EarthBackground } from '../earth-background.js'
@@ -90,226 +91,61 @@ export type SpSavedSettings = Record<string, SpParamValue>
 export const SP_INPUT_TYPES = Object.freeze({ RANGE: _R, CHECKBOX: _C })
 
 /**
+ * Every param wire token keyed by member name — resolves each control
+ * schema row's `key` to the SP_*_PARAMS wire string so params.ts stays
+ * the sole declaration site for the literals.
+ */
+const _SP_PARAM_WIRES: Record<string, string> = {
+  ...SP_CAMERA_PARAMS,
+  ...SP_SCENE_PARAMS,
+  ...SP_POST_PARAMS,
+  ...SP_GRADE_PARAMS,
+  ...SP_DEBUG_PARAMS,
+}
+
+/** SP_ACTIONS as a plain lookup — resolves each action row's `key` to its wire string. */
+const _SP_ACTION_WIRES: Record<string, string> = SP_ACTIONS as Record<string, string>
+
+/**
  * Declarative control schema — the panel renders straight from this so a
- * new engine knob needs no JSX change. Per control:
+ * new engine knob needs no JSX change. The group tree ships as data in
+ * `core/tokens/playground/control-groups.ts` (a zero-import leaf the
+ * Node build scripts read too — the same schema describes the
+ * canvas-rendered panel to crawlers); each row expands here with:
  *   label   translation key looked up in the earth-playground node (and
  *           the key used by the CMS `defaults` map)
- *   param   SP_PARAMS token — the persisted-settings key + data-param attr
- *   type    _R range slider | _C WebGL checkbox
+ *   param   SP_PARAMS token — resolved from the row's `key`; the
+ *           persisted-settings key + data-param attr
+ *   type    _R range slider | _C WebGL checkbox — shape-derived:
+ *           `checked` rows are checkboxes, the rest sliders
  *   min/max/step/def   range geometry; `def` is the shipped default until
  *                      the CMS `defaults` map or a saved user value wins
  *   checked checkbox shipped state — same precedence as `def`
  *   actions group-level buttons (reset view, screenshot, copy settings)
  * `collapsed` controls whether the group starts folded in the panel.
  */
-export const SLIDER_GROUPS: readonly SpGroup[] = Object.freeze([
-  {
-    label: 'engine',
-    collapsed: true,
-    controls: [
-      {
-        label: 'waterMetalness',
-        param: SP_SCENE_PARAMS.WATER_METALNESS,
-        type: _R,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        def: 0,
-      },
-    ],
-  },
-  {
-    label: 'terrain',
-    collapsed: true,
-    controls: [
-      {
-        label: 'bumpScale',
-        param: SP_SCENE_PARAMS.BUMP_SCALE,
-        type: _R,
-        min: 0,
-        max: 20,
-        step: 0.5,
-        def: 5,
-      },
-      {
-        label: 'selfShadow',
-        param: SP_SCENE_PARAMS.SELF_SHADOW,
-        type: _R,
-        min: 0,
-        max: 5,
-        step: 0.1,
-        def: 1,
-      },
-      {
-        label: 'selfShadowOff',
-        param: SP_SCENE_PARAMS.SELF_SHADOW_OFFSET,
-        type: _R,
-        min: 0,
-        max: 0.01,
-        step: 0.0005,
-        def: 0.002,
-      },
-    ],
-  },
-  {
-    label: 'postFx',
-    collapsed: true,
-    controls: [
-      { label: 'bloom', param: SP_POST_PARAMS.BLOOM, type: _C, checked: false },
-      {
-        label: 'bloomStr',
-        param: SP_POST_PARAMS.BLOOM_STRENGTH,
-        type: _R,
-        min: 0,
-        max: 3,
-        step: 0.05,
-        def: 0.1,
-      },
-      {
-        label: 'bloomRadius',
-        param: SP_POST_PARAMS.BLOOM_RADIUS,
-        type: _R,
-        min: 0,
-        max: 2,
-        step: 0.05,
-        def: 0.3,
-      },
-      {
-        label: 'bloomThreshold',
-        param: SP_POST_PARAMS.BLOOM_THRESHOLD,
-        type: _R,
-        min: 0,
-        max: 1.5,
-        step: 0.01,
-        def: 0.9,
-      },
-      { label: 'vignette', param: SP_POST_PARAMS.VIGNETTE, type: _C, checked: false },
-      {
-        label: 'vigDarkness',
-        param: SP_POST_PARAMS.VIGNETTE_DARKNESS,
-        type: _R,
-        min: 0,
-        max: 2,
-        step: 0.05,
-        def: 1,
-      },
-      {
-        label: 'vigOffset',
-        param: SP_POST_PARAMS.VIGNETTE_OFFSET,
-        type: _R,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        def: 0.5,
-      },
-      { label: 'chromaticAb', param: SP_POST_PARAMS.CHROMATIC, type: _C, checked: false },
-      {
-        label: 'caStrength',
-        param: SP_POST_PARAMS.CA_STRENGTH,
-        type: _R,
-        min: 0,
-        max: 2,
-        step: 0.01,
-        def: 0.25,
-      },
-      {
-        label: 'filmGrain',
-        param: SP_POST_PARAMS.FILM_GRAIN,
-        type: _R,
-        min: 0,
-        max: 1,
-        step: 0.01,
-        def: 0,
-      },
-    ],
-  },
-  {
-    label: 'camera',
-    collapsed: false,
-    controls: [
-      { label: 'fov', param: SP_CAMERA_PARAMS.FOV, type: _R, min: 15, max: 90, step: 1, def: 45 },
-      { label: 'autoRotate', param: SP_CAMERA_PARAMS.AUTO_ROTATE, type: _C, checked: false },
-      {
-        label: 'rotateSpeed',
-        param: SP_CAMERA_PARAMS.ROTATE_SPEED,
-        type: _R,
-        min: -5,
-        max: 5,
-        step: 0.01,
-        def: 0.05,
-      },
-    ],
-    actions: [{ label: 'resetView', action: SP_ACTIONS.RESET }],
-  },
-  {
-    label: 'earth',
-    collapsed: true,
-    controls: [
-      {
-        label: 'spinSpeed',
-        param: SP_SCENE_PARAMS.EARTH_SPEED,
-        type: _R,
-        min: 0,
-        max: 50,
-        step: 1,
-        def: 1,
-      },
-      { label: 'sunAutoRotate', param: SP_SCENE_PARAMS.SUN_AUTO_ROTATE, type: _C, checked: true },
-    ],
-  },
-  {
-    label: 'color',
-    collapsed: true,
-    controls: [
-      {
-        label: 'contrast',
-        param: SP_GRADE_PARAMS.CONTRAST,
-        type: _R,
-        min: 0.5,
-        max: 2,
-        step: 0.01,
-        def: 1,
-      },
-      {
-        label: 'saturation',
-        param: SP_GRADE_PARAMS.SATURATION,
-        type: _R,
-        min: 0,
-        max: 2,
-        step: 0.01,
-        def: 1.5,
-      },
-      {
-        label: 'blackLevel',
-        param: SP_GRADE_PARAMS.BLACK_LEVEL,
-        type: _R,
-        min: 0,
-        max: 0.2,
-        step: 0.005,
-        def: 0.015,
-      },
-    ],
-  },
-  {
-    label: 'displayDebug',
-    collapsed: true,
-    controls: [
-      {
-        label: 'resScale',
-        param: SP_DEBUG_PARAMS.RES_SCALE,
-        type: _R,
-        min: 0.5,
-        max: 2,
-        step: 0.1,
-        def: 1,
-      },
-    ],
-    actions: [
-      { label: 'copyConstants', action: SP_ACTIONS.COPY_CONSTANTS },
-      { label: 'screenshot', action: SP_ACTIONS.SCREENSHOT },
-    ],
-  },
-])
+export const SLIDER_GROUPS: readonly SpGroup[] = Object.freeze(
+  SP_CONTROL_GROUPS.map((group) => ({
+    label: group.label,
+    collapsed: group.collapsed,
+    controls: group.controls.map((c) => ({
+      label: c.label,
+      param: _SP_PARAM_WIRES[c.key],
+      type: 'checked' in c ? _C : _R,
+      ...('checked' in c
+        ? { checked: c.checked }
+        : { min: c.min, max: c.max, step: c.step, def: c.def }),
+    })),
+    ...(group.actions
+      ? {
+          actions: group.actions.map((a) => ({
+            label: a.label,
+            action: _SP_ACTION_WIRES[a.key],
+          })),
+        }
+      : {}),
+  }))
+)
 
 /**
  * Pristine def/checked snapshot — _applyDbDefaults restores this baseline

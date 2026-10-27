@@ -39,6 +39,7 @@ import {
   applySpaceTranslations,
   loadSpaceTranslations,
 } from './space/i18n.js'
+import { emitSpaceJsonLd } from './space/schema.js'
 import {
   bindSpaceControls,
   destroySpaceCheckboxCanvases,
@@ -215,6 +216,8 @@ export class SpacePlayground extends BaseComponent {
 
   _applyTranslations(val: Record<string, unknown> | null | undefined): void {
     applySpaceTranslations(this, val)
+
+    emitSpaceJsonLd(this)
   }
 
   /**
