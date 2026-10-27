@@ -125,7 +125,10 @@
 
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: rgba($color-white, 0.4);
+    // 0.9 ≈ #e6e6e6 on the near-black loader backdrop — keeps the ghosted
+    // boot-log look while clearing WCAG AA for the small caps text even
+    // when a scanner samples the veil mid-fade against the glow center.
+    color: rgba($color-white, 0.9);
     margin-bottom: to-rem($space-xs);
   }
 
