@@ -108,8 +108,14 @@ export function dismissSpaceLoader(c: SpacePlayground): void {
     // The fade leaves the element in the accessibility tree until the
     // removal timeout lands — mid-fade its text is still exposed (and
     // still scanned by contrast tooling). visibility:hidden retires it
-    // immediately without clipping the visual fade.
+    // immediately without clipping the visual fade; descendants get the
+    // same inline flag so a scanner that misses shadow-tree inheritance
+    // still sees every child as hidden.
     loader.style.visibility = COMMON_ATTRS.HIDDEN
+
+    for (const el of loader.querySelectorAll?.('*') ?? []) {
+      ;(el as HTMLElement).style.visibility = COMMON_ATTRS.HIDDEN
+    }
 
     setTimeout(() => loader.remove(), ANIMATION_DURATIONS.LOADER_FADE_MS)
   }
