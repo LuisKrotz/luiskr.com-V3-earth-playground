@@ -12,6 +12,14 @@ import { BASE_TITLE } from '@core/tokens/routes.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
 import { generateEarthPlaygroundSchema, updateJsonLd } from '@core/utils/schema.js'
+import {
+  shareGalleryEntity,
+  shareImagesCached,
+  currentShareImage,
+} from '@core/utils/share-gallery.js'
+import { SEARCH_THEMES_KEY } from '@core/tokens/data/search-themes.js'
+import { EARTH_SHARE } from '@core/tokens/playground/share.js'
+import { LOCALE_TAGS } from '@core/tokens/locales.js'
 import router from '@core/router/router.js'
 import store from '@core/store.js'
 import { SLIDER_GROUPS } from './controls.js'
@@ -57,12 +65,37 @@ export function emitSpaceJsonLd(c: SpacePlayground): void {
     ...(group.actions || []).map((action) => label(action.label)),
   ])
 
-  updateJsonLd(
-    generateEarthPlaygroundSchema({
+  const lang = store.getters.getLang()
+
+  const themes = labels[SEARCH_THEMES_KEY]
+
+  const shareUrls = shareImagesCached(EARTH_SHARE.MANIFEST_URL)
+
+  const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || 'en'
+
+  updateJsonLd([
+    ...generateEarthPlaygroundSchema({
       url,
       name: _pageName(route.meta?.title),
-      lang: store.getters.getLang(),
+      description: labels.description as string,
+      lang,
       features,
-    })
-  )
+      ...(Array.isArray(themes) && themes.length ? { keywords: themes.join(', ') } : {}),
+      ...(currentShareImage() ? { screenshot: currentShareImage() as string } : {}),
+    }),
+    // The rotation's ImageObject gallery survives this re-emit — the
+    // specialized graph replaces the whole document graph, so the
+    // capture set is appended back from the share cache.
+    ...(shareUrls.length
+      ? [
+          shareGalleryEntity(
+            url,
+            (labels.shareGallery as string) || _pageName(route.meta?.title),
+            shareUrls,
+            bcp,
+            lang
+          ),
+        ]
+      : []),
+  ])
 }

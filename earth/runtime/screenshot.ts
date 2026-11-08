@@ -12,6 +12,9 @@ import { handleEarthResize } from './frame.js'
 import type { EarthState } from './state.js'
 import { devError, devWarn } from '@core/devlog.js'
 
+/** Download/share-upload filename stem — descriptive enough that captures indexed by image search carry the query vocabulary. */
+const FILENAME_STEM = 'earth-simulation-render-'
+
 /** Renders one frame at 2× resolutionScale and downloads it as PNG. */
 export const takeEarthScreenshot = async (s: EarthState): Promise<void> => {
   if (!s.canvas || !s.renderer) return
@@ -62,7 +65,7 @@ export const takeEarthScreenshot = async (s: EarthState): Promise<void> => {
 
       a.style.display = STATE_STRINGS.NONE
 
-      a.download = `earth-screenshot-${Date.now()}.png`
+      a.download = `${FILENAME_STEM}${Date.now()}.png`
 
       a.href = dataUrl
 
