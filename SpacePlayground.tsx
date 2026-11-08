@@ -50,7 +50,7 @@ import {
   startSpacePositionLoop,
   syncSpacePanel,
 } from './space/wiring.js'
-import spStyles from './space-playground.scss?inline'
+import spStyles from './space-playground.scss?tiers'
 
 // ─── Space / Earth Playground ────────────────────────────────────────────────
 // Immersive full-screen Earth/Moon background as a standalone experience.

@@ -199,6 +199,7 @@
       min-width: to-rem($space-6xl);
       color: var(--text-primary);
       font-size: to-rem(15);
+      font-family: var(--font-desc);
       font-weight: calc(600 + var(--fw-lift));
       letter-spacing: 0.03em;
     }

@@ -6,66 +6,67 @@
 // ── Floating reopen button (Experience Settings) ─────────────────────────────
 // Styled identically to .expand-modal-open-1 with animated corner borders.
 
-// Reopen-panel button shown when the panel is collapsed.
+// Reopen-panel button shown when the panel is collapsed. Visible on
+// every viewport — JS pins/unpins display; the panel itself collapses
+// on small screens too, so hiding the reopen there stranded users.
 .#{$_B_SP}-reopen {
   @extend %RESETBTN;
   @extend .ttl-xs;
 
-  display: none; // managed by JS; shown on desktop when panel is collapsed
+  display: none; // managed by JS — a class/attr flips it on
 
-  @include layout-1024() {
-    position: relative;
-    pointer-events: auto;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: to-rem($space-xs) to-rem($space-lg);
-    // Floats over the always-dark space scene — fixed light ink, not
-    // --text-primary (dark in light mode → invisible on the canvas).
-    color: var(--color-white-raw);
-    background: transparent;
-    font-weight: calc(700 + var(--fw-lift));
-    white-space: nowrap;
-    -webkit-backdrop-filter: blur(to-rem($space-2xs));
-    backdrop-filter: blur(to-rem($space-2xs));
+  position: relative;
+  pointer-events: auto;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: to-rem($space-xs) to-rem($space-lg);
+  font-family: var(--font-desc);
+  // Floats over the always-dark space scene — fixed light ink, not
+  // --text-primary (dark in light mode → invisible on the canvas).
+  color: var(--color-white-raw);
+  background: transparent;
+  font-weight: calc(700 + var(--fw-lift));
+  white-space: nowrap;
+  -webkit-backdrop-filter: blur(to-rem($space-2xs));
+  backdrop-filter: blur(to-rem($space-2xs));
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: to-rem($space-md);
+    height: to-rem($space-md);
     transition:
-      color 0.2s ease,
-      opacity 0.2s ease;
+      width 0.25s ease,
+      height 0.25s ease;
+  }
+
+  &::before {
+    top: 0;
+    left: 0;
+    border-top: 1px solid var(--color-white-raw);
+    border-left: 1px solid var(--color-white-raw);
+  }
+
+  &::after {
+    bottom: 0;
+    right: 0;
+    border-bottom: 1px solid var(--color-white-raw);
+    border-right: 1px solid var(--color-white-raw);
+  }
+
+  &:hover,
+  &:focus {
+    color: var(--color-accent);
 
     &::before,
     &::after {
-      content: '';
-      position: absolute;
-      width: to-rem($space-md);
-      height: to-rem($space-md);
-      transition:
-        width 0.25s ease,
-        height 0.25s ease;
-    }
-
-    &::before {
-      top: 0;
-      left: 0;
-      border-top: 1px solid var(--color-white-raw);
-      border-left: 1px solid var(--color-white-raw);
-    }
-
-    &::after {
-      bottom: 0;
-      right: 0;
-      border-bottom: 1px solid var(--color-white-raw);
-      border-right: 1px solid var(--color-white-raw);
-    }
-
-    &:hover,
-    &:focus {
-      color: var(--color-accent);
-
-      &::before,
-      &::after {
-        width: calc(100% - #{to-rem($space-xs)});
-        height: calc(100% - #{to-rem($space-xs)});
-        border-color: var(--color-accent);
-      }
+      width: calc(100% - #{to-rem($space-xs)});
+      height: calc(100% - #{to-rem($space-xs)});
+      border-color: var(--color-accent);
     }
   }
 }
