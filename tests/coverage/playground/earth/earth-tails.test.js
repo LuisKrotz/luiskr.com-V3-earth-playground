@@ -13,6 +13,7 @@ import { initEarthRenderer } from '@earth/earth/setup/renderer-setup.js'
 import { warmUpShaders } from '@earth/earth/setup/bootstrap.js'
 import { updateEarthRender } from '@earth/earth/runtime/updates.js'
 
+/** Rewrites the URL without navigation — sets debug/query params per test. */
 const setSearch = (s) => window.history.replaceState(null, '', s)
 
 describe('earth tails', () => {

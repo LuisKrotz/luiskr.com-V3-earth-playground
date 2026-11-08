@@ -7,6 +7,7 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
 const { EarthBackground } = await import('@earth/earth-background.js')
 
+/** Mounts a fresh <canvas> into the DOM — EarthBackground binds its renderer to it. */
 const makeCanvas = () => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
 
@@ -15,6 +16,7 @@ const makeCanvas = () => {
   return canvas
 }
 
+/** 400ms settle — the async three.js bootstrap needs real timers past microtasks. */
 const waitBoot = () => new Promise((resolve) => setTimeout(resolve, 400))
 
 describe('EarthBackground residual arms', () => {

@@ -16,6 +16,7 @@ import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
 globalThis.alert = jest.fn()
 
+/** Generous flush — mounted render queues need real timers past microtasks. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('space boot tails', () => {

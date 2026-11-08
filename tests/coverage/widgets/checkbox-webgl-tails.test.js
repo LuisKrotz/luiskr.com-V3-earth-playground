@@ -13,6 +13,7 @@ import { attachMock2D } from '@tests/fixtures/mock-webgl.js'
 import { TEST_COLORS, TEST_TEXT } from '@tests/fixtures/test-constants.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
+/** Timer flush — mounted widget queues need real timers past microtasks. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('checkbox-webgl tails', () => {

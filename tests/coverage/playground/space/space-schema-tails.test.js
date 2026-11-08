@@ -12,12 +12,14 @@ import { emitSpaceJsonLd } from '@earth/space/schema.js'
 import { generateProjectSchema } from '@core/utils/schema.js'
 import { TEST_PROJECTS, TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
+/** Reads and parses the injected JSON-LD script tag — null when absent. */
 const graphPayload = () => {
   const el = document.getElementById(SCHEMA_STRINGS.JSON_LD_SCRIPT_ID)
 
   return el ? JSON.parse(el.textContent) : null
 }
 
+/** Route-record factory matching the router's shape; per-test overrides merge in. */
 const SP_ROUTE = (over = {}) => ({
   view: VIEW_TAGS.VIEW_SPACE_PLAYGROUND,
   path: '/earth-playground',

@@ -23,6 +23,7 @@ import { FOCUS_EVENTS, FORM_EVENTS, MOUSE_EVENTS } from '@core/tokens/events/dom
 import { SP_CLASSES } from '@core/tokens/classes/playground.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 
+/** RTDB payload the fetchFirebaseDb mock serves — minimal fields the view renders. */
 const dbData = { title: 'Space', engine: 'Engine' }
 
 jest.unstable_mockModule('@core/utils/data/db.js', () => ({
@@ -31,6 +32,7 @@ jest.unstable_mockModule('@core/utils/data/db.js', () => ({
 
 await import('@earth/SpacePlayground.js')
 
+/** Mounts a <view-space-playground> element into the body and returns it. */
 const mount = () => {
   const el = document.createElement(VIEW_TAGS.VIEW_SPACE_PLAYGROUND)
 
@@ -39,6 +41,11 @@ const mount = () => {
   return el
 }
 
+/**
+ * Poll-until-rendered wait — the engine boot is multi-stage async, so this
+ * ticks every 30ms until the settings panel appears in the shadow root or the
+ * 8s deadline rejects (fail-fast rather than hanging the suite).
+ */
 const waitBoot = (el, timeout = 8000) =>
   new Promise((resolve, reject) => {
     const t0 = Date.now()
@@ -50,6 +57,7 @@ const waitBoot = (el, timeout = 8000) =>
     tick()
   })
 
+/** Saved canvas.getContext — beforeEach captures it so tests can stub WebGL failures. */
 let origGetContext
 
 beforeEach(() => {
@@ -67,8 +75,10 @@ afterEach(() => {
   proto.getContext = origGetContext
 })
 
+/** Timer flush — lets queued microtasks/rAF work drain between actions. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
+/** Runs the element's teardown then removes it from the DOM — full unmount. */
 const _unmount = (el) => {
   el.onDestroy()
   el.remove()

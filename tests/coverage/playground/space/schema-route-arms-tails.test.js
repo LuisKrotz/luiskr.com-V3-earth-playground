@@ -13,6 +13,7 @@ import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 import router from '@core/router/router.js'
 import store from '@core/store.js'
 
+/** Route-record factory matching the router's shape; per-test overrides merge in. */
 const SP_ROUTE = (over = {}) => ({
   view: VIEW_TAGS.VIEW_SPACE_PLAYGROUND,
   path: '/earth-playground',
@@ -20,6 +21,7 @@ const SP_ROUTE = (over = {}) => ({
   ...over,
 })
 
+/** Reads the last injected JSON-LD script tag — null when absent. */
 const graphPayload = () => {
   const scripts = [...document.head.querySelectorAll('script[type="application/ld+json"]')]
 

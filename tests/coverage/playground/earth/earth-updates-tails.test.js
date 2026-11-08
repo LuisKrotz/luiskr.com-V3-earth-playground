@@ -30,6 +30,7 @@ import { bootstrapEarth } from '@earth/earth/setup/bootstrap.js'
 
 globalThis.alert = jest.fn()
 
+/** three.js uniform stub — updaters only mutate `.value`, so a plain box suffices. */
 const uni = (v = 0) => ({ value: v })
 
 describe('earth updates tails', () => {
