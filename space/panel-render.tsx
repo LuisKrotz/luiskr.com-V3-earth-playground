@@ -8,6 +8,7 @@
 
 import { A11Y_CLASSES } from '@core/tokens/classes/a11y.js'
 import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
+import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
 import { FORM_ATTRS } from '@core/tokens/attrs/form.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { SP_CLASSES } from '@core/tokens/classes/playground.js'
@@ -71,7 +72,13 @@ export const renderSpControl = (
               aria-describedby={desc.id}
             />
             <span className={SP_CLASSES.SP_CHECK_BOX}>
-              <canvas className={SP_CLASSES.SP_CHECK_CANVAS} data-check={ctrl.param} />
+              <canvas
+                className={SP_CLASSES.SP_CHECK_CANVAS}
+                data-check={ctrl.param}
+                // Interactive chrome — the print adapter retires the tick
+                // canvas outright rather than capturing a 20px still.
+                {...{ [DATA_ATTRS.PRINT_SKIP]: ATTR_VALUES.EMPTY }}
+              />
               <svg
                 className={SP_CLASSES.SP_CHECK_ICON}
                 viewBox="0 0 16 16"

@@ -8,6 +8,7 @@
 //    _panel    right-side WebGL controls panel (desktop ≥1024px)
 //    _reopen   floating Experience-Settings reopen button
 //    _music    native audio player bar
+//    _print    print contract (landscape still, no controls)
 //  The panel is desktop-only; on smaller screens the view is the canvas
 //  alone.
 // ════════════════════════════════════════════════════════════════════════════
@@ -26,3 +27,4 @@ $_B_SPP: '#{$_B_SP}-panel';
 @import 'space-playground/panel';
 @import 'space-playground/reopen';
 @import 'space-playground/music';
+@import 'space-playground/print';

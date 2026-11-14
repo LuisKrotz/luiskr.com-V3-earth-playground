@@ -18,6 +18,7 @@ import { EarthBackground } from '../earth-background.js'
 import { PARAM_HANDLERS, SP_INPUT_TYPES } from './controls.js'
 import type { SpacePlayground } from '../SpacePlayground.js'
 import { devError } from '@core/devlog.js'
+import { trackPrintJob } from '@core/utils/print/print.js'
 
 /**
  * Mirrors an engine progress event into the loader overlay — message,
@@ -43,7 +44,9 @@ export function updateSpaceLoader(c: SpacePlayground, msg: string, pct: number):
  * settings + reduced-motion flag + dismiss. The `_isInitializingEarth`
  * latch prevents double-init while init() is still awaiting. A failed
  * init still marks `_earthReady` and dismisses the loader so the page
- * isn't stuck behind a broken overlay.
+ * isn't stuck behind a broken overlay. The init promise is registered
+ * as a pending print job so a print request landing mid-boot waits for
+ * the first painted frame before the media walk captures the canvas.
  * @param c The SpacePlayground element.
  */
 export function initSpaceEarth(c: SpacePlayground): void {
@@ -79,7 +82,10 @@ export function initSpaceEarth(c: SpacePlayground): void {
     },
   })
 
-  c._earthBg.init().catch((err) => {
+  // Registered BEFORE the catch handler so the print gate tracks the raw
+  // init settle — failures resolve through the catch below, never
+  // hanging the pending-job barrier.
+  const init = c._earthBg.init().catch((err) => {
     devError('[SpacePlayground] Earth init error:', err)
     c._isInitializingEarth = false
     c._earthReady = true
@@ -91,6 +97,11 @@ export function initSpaceEarth(c: SpacePlayground): void {
 
     c._dismissLoader()
   })
+
+  // The print gate's pending-job barrier waits on this settle — a print
+  // fired mid-boot pauses until the engine has painted (or failed, in
+  // which case the canvas carries no capture marker and is skipped).
+  trackPrintJob(init)
 }
 
 /**

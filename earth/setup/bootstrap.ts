@@ -10,8 +10,11 @@
  * Every `await` is followed by a disposed check — destroy() during a
  * slow texture load must not continue mutating a torn-down scene.
  */
+import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
+import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { DEFAULT_SP_GUI } from '@core/tokens/playground.js'
-import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
+import { PRINT_EVENTS, WINDOW_EVENTS } from '@core/tokens/events/dom.js'
+import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { initEarthRenderer } from './renderer-setup.js'
 import {
   setupEarthGroup,
@@ -114,11 +117,52 @@ export const bootstrapEarth = async (s: EarthState): Promise<void> => {
 
   window.addEventListener(WINDOW_EVENTS.RESIZE, s.onResize, { passive: true })
 
+  // The canvas stamps `data-print-capture`, which makes the print
+  // adapter's toDataURL read driver-owned: it dispatches `printcapture`
+  // and waits for detail.dataUrl instead of touching the buffer. Answer
+  // by repainting one frame through the same pipeline the tick uses —
+  // post FX included — then serializing. A WebGPU canvas presents at
+  // frame end, so the read lands on the frame this paint (or the last
+  // presented one) left standing; a dead renderer simply skips the
+  // repaint and the still reads whatever the buffer last held.
+  s.onPrintCapture = (e: Event) => {
+    if (s.disposed || !s.canvas) return
+
+    try {
+      if (s.renderer && s.scene && s.camera) {
+        if (s.pipeline) {
+          try {
+            s.pipeline.render()
+          } catch {
+            s.renderer.render(s.scene, s.camera)
+          }
+        } else {
+          s.renderer.render(s.scene, s.camera)
+        }
+      }
+
+      ;(e as CustomEvent<{ dataUrl?: string }>).detail.dataUrl = s.canvas.toDataURL(
+        NET_STRINGS.IMAGE_PNG
+      )
+    } catch (err) {
+      devWarn('[EarthBG] print capture failed:', err)
+    }
+  }
+
+  s.canvas?.addEventListener(PRINT_EVENTS.CAPTURE, s.onPrintCapture)
+
   s.onProgress?.('Compiling shaders…', 90)
 
   await warmUpShaders(renderer, s)
 
   if (s.disposed) return
+
+  // The capture markers arm only now — the warmup just proved the buffer
+  // paints real frames. A canvas printed mid-boot carries no marker, so
+  // the adapter's aria-hidden guard simply skips it: a boot that can't
+  // paint never strands a blank plate on paper.
+  s.canvas?.setAttribute(DATA_ATTRS.PRINT_CAPTURE, ATTR_VALUES.EMPTY)
+  s.canvas?.setAttribute(DATA_ATTRS.PRINT_LANDSCAPE, ATTR_VALUES.EMPTY)
 
   if (!s.reduced) tickEarth(s)
 

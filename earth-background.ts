@@ -31,7 +31,8 @@
  */
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
-import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
+import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
+import { PRINT_EVENTS, WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { createEarthState, type EarthProgressFn, type EarthState } from './earth/runtime/state.js'
 import { bootstrapEarth } from './earth/setup/bootstrap.js'
 import { tickEarth } from './earth/runtime/frame.js'
@@ -92,6 +93,14 @@ export class EarthBackground {
     // bailouts) leave the scene half-built without throwing — a missing
     // earth group means boot never completed, so flag it for the fallback.
     if (!this.#s.earth) this.#s.failed = true
+
+    // A failed engine can't answer printcapture — strip the markers so
+    // the print walk skips the dead canvas instead of stranding a blank
+    // plate on paper.
+    if (this.#s.failed) {
+      this.#s.canvas?.removeAttribute(DATA_ATTRS.PRINT_CAPTURE)
+      this.#s.canvas?.removeAttribute(DATA_ATTRS.PRINT_LANDSCAPE)
+    }
 
     this.#s.onReady?.()
   }
@@ -181,6 +190,15 @@ export class EarthBackground {
     }
 
     if (s.onResize) window.removeEventListener(WINDOW_EVENTS.RESIZE, s.onResize)
+
+    if (s.onPrintCapture) {
+      s.canvas?.removeEventListener(PRINT_EVENTS.CAPTURE, s.onPrintCapture)
+
+      // A dead engine's canvas must stop claiming the print plate —
+      // without the listener the marker would only produce a blank well.
+      s.canvas?.removeAttribute(DATA_ATTRS.PRINT_CAPTURE)
+      s.canvas?.removeAttribute(DATA_ATTRS.PRINT_LANDSCAPE)
+    }
 
     s.renderer?.dispose()
 

@@ -166,6 +166,9 @@ export interface EarthState {
   }
   /** Stable resize-listener identity so destroy() can removeEventListener. */
   onResize: (() => void) | null
+  /** Stable printcapture-listener identity — answers the print adapter's
+   *  frame request with a PNG data URL; removed on destroy. */
+  onPrintCapture: ((e: Event) => void) | null
 }
 
 /**
@@ -224,4 +227,5 @@ export const createEarthState = (
     appliedQuality: 1,
   },
   onResize: null,
+  onPrintCapture: null,
 })

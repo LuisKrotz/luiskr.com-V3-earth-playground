@@ -1,0 +1,54 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  space-playground/_print.scss — print contract for the Earth Playground.
+//  The route prints as a single landscape still: the adapter swaps the
+//  aria-hidden scene canvas (data-print-capture) for a .print-copy image,
+//  and every interactive surface — controls panel, reopen button, music
+//  bar, loader, readout — stays behind on screen. Imported LAST by the
+//  manifest so these rules win at equal specificity.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Pagination: the frame is wider than tall, so the canvas carries
+// `data-print-landscape` — the adapter stamps `html.print-landscape` and
+// the DOCUMENT sheet's named `@page print-landscape` flips the job to
+// landscape sheets. A shadow-scoped @page rule would be inert here
+// (adopted stylesheets never participate in document pagination).
+@media print {
+  :host {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: var(--bg-primary);
+  }
+
+  // Live canvas + every piece of interactive chrome — none of it prints.
+  .#{$_B_SP}-canvas,
+  .#{$_B_SP}-fallback,
+  .#{$_B_SP}-loader,
+  .#{$_B_SP}-controls-wrap,
+  .#{$_B_SP}-reopen,
+  .#{$_B_SPP},
+  .#{$_B_SP}-music,
+  .print-src {
+    display: none;
+  }
+
+  // The captured Earth still — full page width, natural aspect (no
+  // distortion), centred on the sheet.
+  .print-copy {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+
+  .print-caption {
+    display: block;
+    margin: var(--space-xs) auto 0;
+    font-size: var(--print-caption-size);
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+}

@@ -28,6 +28,7 @@ import {
 } from './space/controls.js'
 import { renderSpAction, renderSpControl } from './space/panel-render.js'
 import { renderSpacePlayground } from './space/render.js'
+import { bindSpacePrint } from './space/print.js'
 import {
   applyPersistedSettings,
   dismissSpaceLoader,
@@ -75,6 +76,7 @@ export class SpacePlayground extends BaseComponent {
   _checkboxes: Record<string, CheckboxWebGL> = {} // param → CheckboxWebGL widget map
   _canvasEl: HTMLCanvasElement | null = null // persistent render canvas (kept across re-renders)
   _isInitializingEarth = false // re-entrancy guard while init() is in flight
+  _printDispose: (() => void) | null = null // printprepare listener unbinder
   _earthReady = false // first usable frame delivered — loader dismisses
   _earthFailed = false // engine boot failed — CSS fallback surface renders instead
   _keyboardExpandedGroups = new WeakSet<Element>() // collapsed groups opened only for focus traversal
@@ -92,6 +94,10 @@ export class SpacePlayground extends BaseComponent {
       this._canvasEl.className = SP_CLASSES.SP_CANVAS
 
       this._canvasEl.setAttribute(ARIA_ATTRS.ARIA_HIDDEN, ATTR_VALUES.TRUE)
+      // The print-capture/landscape markers stay OFF until the engine
+      // proves a painted frame — bootstrap stamps them after shader
+      // warmup, destroy strips them: a mid-boot or dead canvas is
+      // skipped by the walk instead of stranding a blank plate.
     }
 
     return this._canvasEl
@@ -138,6 +144,8 @@ export class SpacePlayground extends BaseComponent {
     }
 
     this._mountCheckboxCanvases()
+
+    this._printDispose = bindSpacePrint(this)
   }
 
   /** Lifecycle: re-mounts checkbox canvases after re-render. */
@@ -174,6 +182,10 @@ export class SpacePlayground extends BaseComponent {
     this._earthReady = false
 
     this._earthFailed = false
+
+    this._printDispose?.()
+
+    this._printDispose = null
 
     if (this._posRafId) cancelAnimationFrame(this._posRafId)
 
